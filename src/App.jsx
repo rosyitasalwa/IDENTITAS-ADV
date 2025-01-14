@@ -7,7 +7,11 @@ import Product from "./components/Product";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import HomePage from "./pages/HomePage";
-import AdminDashboard from "./pages/AdminDashboard";
+import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
+import NavbarAdmin from './Admin/NavbarAdmin';
+import AccountSetting from './Admin/AccountSetting';
+
 
 function App() { 
     return (    
@@ -20,8 +24,11 @@ function App() {
             <Route path="/herosection" element={<HeroSection />} /> 
             <Route path="/product" element={<Product />} />  
             <Route path="/contact" element={<Contact />} />  
-            <Route path="/footer" element={<Footer />} />  
-            <Route path="/admindashboard" element={<AdminDashboard />} />   
+            <Route path="/footer" element={<Footer />} />    
+            <Route path="/login" element={<Login/>} />   
+            <Route path="/signup" element={<SignUp/>} />
+            <Route path="/admin" element={<NavbarAdmin />} />
+            <Route path="/accountsetting" element={<AccountSetting />} />
           </Routes>
       </Router>
     </div>
