@@ -1,9 +1,8 @@
 import React from 'react';
-
 const AccountSetting = () => {
   return (
     <div className="flex justify-center items-center min-h-screen bg-customBeigeMuda">
-                    <div className=" p-8 rounded-lg w-full max-w-2xl">
+                    <div className=" p-8 rounded-lg max-w-2xl w-1/2 mr-96">
                         <h1 className="text-2xl font-bold mb-4 text-[#4b2e2e]">ACCOUNT</h1>
                         <div className="flex flex-col md:flex-row items-center mb-4">
                             <img src="https://placehold.co/100x100" alt="Profile picture of a person" className="w-24 h-24 rounded-full mb-4 md:mb-0 md:mr-4" />

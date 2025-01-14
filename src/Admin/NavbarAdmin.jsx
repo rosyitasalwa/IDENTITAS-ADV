@@ -3,12 +3,13 @@ import { Link } from 'react-router-dom';
 
 const NavbarAdmin = () => {
   return (
+
     <div>
       <div className="flex h-screen">
         <div className="bg-red-900 text-white w-1/4 p-8">
-          <h1 className="font-great-vibes text-4xl mb-12">Identitas Advertising</h1>
+          <h1 className="font-great-vibes text-4xl mb-12 font-dancing">Identitas Advertising</h1>
           <nav className="space-y-6">
-            <Link to="/accountsetting" className="flex items-center space-x-2">
+            <Link to="/admin/accountsetting" className="flex items-center space-x-2">
               <i className="fas fa-user-cog"></i>
               <span>Account Setting</span>
             </Link>
@@ -26,7 +27,6 @@ const NavbarAdmin = () => {
             </Link>
           </nav>
         </div>
-        <div className="flex-1 bg-gray-200"></div>
       </div>
     </div>
   );
