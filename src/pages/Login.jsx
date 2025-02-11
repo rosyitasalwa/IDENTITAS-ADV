@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { app, auth } from '../firebase';
+import { app, auth, db } from '../firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { getDoc, doc } from 'firebase/firestore';
 import bgAdv from '../assets/bgAdv.jpg';
 
 const Login = () => {
@@ -12,11 +13,19 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await signInWithEmailAndPassword(auth, email, password);
-            console.log('Login Successfully');
-            navigate('/');
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            
+            // Check if user is admin in Firestore
+            const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+            const userData = userDoc.data();
+            
+            if (userData?.role === 'admin') {
+                navigate('/admin/beranda');
+            } else {
+                navigate('/');
+            }
         } catch (err) {
-            console.log(err);
+            console.error(err);
         }
     };
 

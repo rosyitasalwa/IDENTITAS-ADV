@@ -1,92 +1,101 @@
-import React from 'react';
-import NavbarAdmin from './NavbarAdmin';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { collection, onSnapshot, deleteDoc, doc } from "firebase/firestore";
+import { db } from "../firebase";
 
-// Data produk yang akan ditampilkan di dashboard
-const products = [
-  {
-    id: 1,
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-01-14%20081324-avyT400BZfQVVmamKsz29CwAxY2d7S.png",
-    name: "Gelas Kustom",
-    description: "Gelas berbahan dasar kaca berukuran diameter 7 cm ..."
-  },
-  {
-    id: 2,
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-01-14%20081324-avyT400BZfQVVmamKsz29CwAxY2d7S.png",
-    name: "Kartu Undangan", 
-    description: "Undangan berbahan dasar Kertas Concorde berukuran 16x12cm, ..."
-  },
-  {
-    id: 3,
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-01-14%20081324-avyT400BZfQVVmamKsz29CwAxY2d7S.png",
-    name: "Dompet Kustom",
-    description: "Dompet berbahan dasar canvas berukuran 16x12cm free custom ..."
-  },
-  {
-    id: 4,
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-01-14%20081324-avyT400BZfQVVmamKsz29CwAxY2d7S.png", 
-    name: "Payung Lipat",
-    description: "Payung lipat terbuat dari bahan parasut berkualitas tinggi ..."
-  },
-  {
-    id: 5,
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-01-14%20081324-avyT400BZfQVVmamKsz29CwAxY2d7S.png",
-    name: "Botol Minum",
-    description: "Botol minum custom dengan bahan kaca berkualitas tinggi, ..."
-  }
-];
+const Dashboard = () => {
+  const [products, setProducts] = useState([]);
+  const navigate = useNavigate();
 
-function Dashboard() {
-  <div className='w-full'>
-    <NavbarAdmin />
-  </div>
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, "products"), (snapshot) => {
+      const productsData = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setProducts(productsData);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Apakah Anda yakin ingin menghapus produk ini?")) {
+      try {
+        await deleteDoc(doc(db, "products", id));
+        alert("Produk berhasil dihapus.");
+      } catch (error) {
+        console.error("Error deleting product:", error.message);
+        alert(`Gagal menghapus produk: ${error.message}`);
+      }
+    }
+  };
+
+  const handleEdit = (product) => {
+    navigate("/admin/addproduct", { state: { product } });
+  };
+
   return (
-    <div className="min-h-screen bg-[#e6dfd3]">
-      <div className="flex justify-end p-4 gap-4">
-        <div className="w-10 h-10 rounded-full bg-gray-300" />
-      </div>
-      
-      <div className="mx-auto max-w-xl p-6 bg-[#4a0c0c] text-white rounded-lg">
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold">PRODUK</h1>
-        </div>
-
-        <div className="flex justify-between items-center mb-6">
-          <div className="grid grid-cols-3 gap-4 text-sm">
-            <div>Gambar Produk</div>
-            <div>Nama Produk</div>
-            <div>Deskripsi Produk</div>
-          </div>
-          <button className="bg-gray-600 text-white px-4 py-2 rounded-md flex items-center gap-2" aria-label="Tambahkan Produk">
-            <span>+</span> Tambahkan Produk
+    <div className="dashboard">
+      <div className="mx-auto max-w-7xl p-8 sm:p-6 md:p-8 md:mr-56 bg-customMaroon text-white rounded-lg">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 space-y-4 sm:space-y-0">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold">Produk</h1>
+          <button
+            className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-500 transition"
+            onClick={() => navigate("/admin/addproduct")}
+          >
+            + Tambahkan Produk
           </button>
         </div>
 
-        <div className="space-y-4">
-          {products.map((product) => (
-            <div key={product.id} className="grid grid-cols-[1fr_1fr_2fr_auto] gap-4 items-center">
-              <div className="w-20 h-20 bg-white rounded-md overflow-hidden">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div>{product.name}</div>
-              <div className="text-sm text-gray-300">{product.description}</div>
-              <div className="flex gap-2">
-                <button className="px-4 py-1 bg-gray-600 rounded-md" aria-label={`Edit ${product.name}`}>Edit</button>
-                <button className="px-2 py-1 text-red-500" aria-label={`Hapus ${product.name}`}>🗑️</button>
-              </div>
-            </div>
-          ))}
-        </div>
+        {/* Produk */}
+        {products.length === 0 ? (
+          <p className="text-center text-gray-300">Tidak ada produk yang tersedia.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-3 xl:grid-cols-2 gap-4">
+            {products.map((product) => (
+              <div
+                key={product.id}
+                className="bg-white text-black rounded-md shadow-lg overflow-hidden flex flex-col"
+              >
+                {/* Gambar */}
+                <div className="w-full h-48 bg-gray-200">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
 
-        <button className="flex items-center gap-2 mt-4 text-sm text -gray-300" aria-label="Lihat lebih banyak produk">
-          4 Lainnya
-        </button>
+                {/* Informasi Produk */}
+                <div className="p-4 flex flex-col flex-grow">
+                  <h2 className="font-semibold text-lg mb-2 truncate">{product.name}</h2>
+                  <p className="text-sm text-gray-600 mb-4 flex-grow">
+                    {product.description}
+                  </p>
+                  <div className="flex justify-end space-x-2">
+                    <button
+                      onClick={() => handleEdit(product)}
+                      className="bg-blue-500 text-white px-3 py-1 text-sm rounded hover:bg-blue-400 transition"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(product.id)}
+                      className="bg-red-500 text-white px-3 py-1 text-sm rounded hover:bg-red-400 transition"
+                    >
+                      Hapus
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
-}
+};
 
 export default Dashboard;

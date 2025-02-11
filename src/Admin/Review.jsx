@@ -1,43 +1,81 @@
-import React from 'react'
+import React, { useState, useEffect } from "react";
+import { db } from "../firebase";
+import { collection, query, orderBy, onSnapshot, doc, deleteDoc } from "firebase/firestore";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const Review = () => {
-  return (
-    <div className="p-6 max-w-2xl w-full">
-                    <h1 className="text-2xl font-bold text-[#5a2d0c] mb-4">REVIEW</h1>
-                    <div className="space-y-4">
-                        <div className="border-2 border-[#5a2d0c] p-4 bg-white">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <h2 className="font-bold">Killa Cantika</h2>
-                                    <p className="text-sm text-gray-500">killacantika@gmail.com</p>
-                                </div>
-                                <p className="text-sm text-gray-500">2 jam yang lalu</p>
-                            </div>
-                            <p className="mt-2">Produk-produknya sangat bagus, dan penjualnya ramah. Respon dari penjualnya juga sangat cepat, produknya sesuai dengan yang digambar</p>
-                        </div>
-                        <div className="border-2 border-[#5a2d0c] p-4 bg-white">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <h2 className="font-bold">Kiara Kayla</h2>
-                                    <p className="text-sm text-gray-500">kiarakayla@gmail.com</p>
-                                </div>
-                                <p className="text-sm text-gray-500">2 Desember</p>
-                            </div>
-                            <p className="mt-2">Barangnya sesuai dengan gambar, harga terjangkau tapi kualitas yang diberikan sangat bagus</p>
-                        </div>
-                        <div className="border-2 border-[#5a2d0c] p-4 bg-white">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <h2 className="font-bold">Andhika Putra</h2>
-                                    <p className="text-sm text-gray-500">andhikaputra@gmail.com</p>
-                                </div>
-                                <p className="text-sm text-gray-500">19 November</p>
-                            </div>
-                            <p className="mt-2">Puas banget order disini, pelayanannya ramah</p>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
+  const [reviews, setReviews] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const auth = getAuth();
 
-export default Review
+  useEffect(() => {
+    const fetchReviews = () => {
+      const q = query(collection(db, "reviews"), orderBy("timestamp", "desc"));
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const reviewList = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setReviews(reviewList);
+      });
+
+      return () => unsubscribe();
+    };
+
+    fetchReviews();
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user && user.email === "admin1@gmail.com") {
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false);
+      }
+    });
+    return () => unsubscribe();
+  }, [auth]);
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Apakah Anda yakin ingin menghapus review ini?")) {
+      try {
+        await deleteDoc(doc(db, "reviews", id));
+      } catch (error) {
+        console.error("Error deleting review:", error);
+      }
+    }
+  };
+
+  return (
+    <div className="p-6 md:mr-56">
+      <h2 className="text-2xl font-bold text-customMaroon text-center mb-6">
+        User Reviews
+      </h2>
+      {reviews.length > 0 ? (
+        reviews.map((review) => (
+          <div
+            key={review.id}
+            className="bg-white p-4 rounded shadow-md mb-4"
+          >
+            <h3 className="font-bold">{review.name}</h3>
+            <p className="text-sm text-gray-500">{review.email}</p>
+            <p className="mt-2">{review.review}</p>
+            {isAdmin && (
+              <button
+                onClick={() => handleDelete(review.id)}
+                className="mt-2 bg-red-500 text-white px-4 py-1 rounded"
+              >
+                Hapus
+              </button>
+            )}
+          </div>
+        ))
+      ) : (
+        <p className="text-center text-gray-500">No reviews yet.</p>
+      )}
+    </div>
+  );
+};
+
+export default Review;

@@ -1,19 +1,29 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
 import { signOut, onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from 'firebase/firestore';
 import logo from "../assets/Logo.png";
 
 const NAvbar = () => {
     const [show, setShow] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [username, setUsername] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => { 
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
             setIsLoggedIn(!!user);
-        })
+            if (user) {
+                // Fetch user data from Firestore
+                const userDoc = await getDoc(doc(db, 'users', user.uid));
+                const userData = userDoc.data();
+                setUsername(userData?.nama || ''); // Use the 'nama' field from your user data
+            } else {
+                setUsername('');
+            }
+        });
 
         return () => unsubscribe();
     }, []);
@@ -21,6 +31,7 @@ const NAvbar = () => {
     const handleLogout = async () => {
         try {
             await signOut(auth);
+            setUsername('');
             console.log("Logged out successfully");
             navigate("/");
         } catch (err) {
@@ -36,12 +47,12 @@ const NAvbar = () => {
     let menuActive = show ? "left-0" : "-left-full";
 
   return (
-  <div className="navbar bg-customTaupe fixed w-full transition-all py-4 shadow-lg z-10 bg-opacity-80">
+  <div className="navbar bg-customTaupe fixed w-screen transition-all py-4 shadow-lg z-10 bg-opacity-80">
     <div className="container mx-auto px-4">
         <div className="navbar-box flex items-center justify-between">
-            <div className="logo">
+            <Link to="/" className="logo">
             <img src={logo} alt="Logo Identitas Advertising" className="h-10"/>
-             </div>
+             </Link>
             <ul className={`flex lg:gap-12 md:static md:flex-row md:shadow-none md:bg-transparent md:w-auto md:h-full md:translate-y-0 md:text-white md:p-0 md:m-0 md:transition-none gap-8 fixed ${menuActive} top-1/2
             -translate-y-1/2 flex-col px-8 py-6 rounded shadow-lg shadow-orange-950 bg-customTaupe bg-opacity-60 font-bold text-orange-950 transition-all`}>
                 

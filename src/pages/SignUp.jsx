@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { app, auth } from '../firebase'
+import { auth, db } from '../firebase'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
+import { doc, setDoc } from 'firebase/firestore'
 import bgAdv from '../assets/bgAdv.jpg';
 
 const SignUp = () => {
@@ -15,12 +16,21 @@ const SignUp = () => {
         e.preventDefault()
         setError('')
         try {
-            await createUserWithEmailAndPassword(auth, email, password)
+            // Create user in Firebase Auth
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+            
+            // Save additional user data to Firestore
+            await setDoc(doc(db, 'users', userCredential.user.uid), {
+                nama: nama,
+                email: email,
+                role: 'user', // Default role is user
+            });
+
             console.log("Account Created")
             setNama('')
             setEmail('')
             setPassword('')
-            navigate('/login')
+            navigate('/')
         } catch(err) {
             setError(err.message);
             console.log(err)

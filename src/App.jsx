@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AdminProvider } from './contexts/AdminContext';
+import { useAdmin } from './contexts/AdminContext';
 
 // Komponen umum (User)
 import NAvbar from "./components/NAvbar";
@@ -16,26 +18,26 @@ import SignUp from "./pages/SignUp";
 
 // Komponen admin
 import NavbarAdmin from './Admin/NavbarAdmin';
-import AccountSetting from './Admin/AccountSetting';
+import AccountSetting from './Admin/Home';
 import Dashboard from './Admin/Dashboard';
 import Review from './Admin/Review';
+import AddProduct from './Admin/AddProduct';
 
-function App() {
-  // Tentukan apakah pengguna adalah admin (isAdmin)
-  const [isAdmin] = useState(false); // Atur sesuai dengan kondisi login atau status admin
+import { ProtectedAdminRoute } from './components/ProtectedRoute';
+
+function AppContent() {
+  const { isAdmin, loading } = useAdmin();
+  const [products, setProducts] = useState([]); // State untuk produk
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <div>
+    <div className='bg-white min-h-screen'>
       <Router>
         <Routes>
-          {/* Rute untuk Admin */}
-          {isAdmin ? (
-            <>
-              <Route path="/" element={<AdminLayout><Dashboard /></AdminLayout>} />
-              <Route path="/admin/accountsetting" element={<AdminLayout><AccountSetting /></AdminLayout>} />
-              <Route path="/admin/review" element={<AdminLayout><Review /></AdminLayout>} />
-            </>
-          ) : (
+
             <>
               {/* Rute untuk User */}
               <Route path="/" element={<><NAvbar /><HomePage /></>} />
@@ -47,26 +49,85 @@ function App() {
               <Route path="/login" element={<><NAvbar /><Login /></>} />
               <Route path="/signup" element={<><NAvbar /><SignUp /></>} />
             </>
-          )}
+
+            <Route 
+            path="/admin/*" 
+            element={
+              <ProtectedAdminRoute>
+                <AdminLayout>
+                  <Routes>
+                  <Route
+                      path="produk"
+                      element={<Dashboard products={products} />}
+                    />
+                    <Route
+                      path="addproduct"
+                      element={<AddProduct setProducts={setProducts} />}
+                    />
+                    <Route path="beranda" element={<AccountSetting />} />
+                    <Route path="ulasan" element={<Review />} />
+                  </Routes>
+                </AdminLayout>
+              </ProtectedAdminRoute>
+            } 
+          />
         </Routes>
       </Router>
     </div>
   );
 }
 
+function App() {
+  return (
+    <AdminProvider>
+      <AppContent />
+    </AdminProvider>
+  );
+}
+
 // Layout untuk Admin menggunakan Flexbox dan Tailwind CSS
 const AdminLayout = ({ children }) => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
   return (
-    <div className="flex min-h-screen">
-      {/* Navbar Admin di sisi kiri */}
-      <div className="w-64 bg-red-900 text-white fixed h-full">
+    <div className="flex min-h-screen bg-customBeigeMuda">
+      {/* Sidebar */}
+      <div
+        className={`bg-red-900 text-white fixed md:relative z-20 transform ${
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0 transition-transform duration-300 ease-in-out md:w-64 w-64`}
+      >
         <NavbarAdmin />
       </div>
-      
-      {/* Konten utama di sebelah kanan navbar */}
-      <div className="ml-64 w-full p-6 bg-gray-100">
-        {children}
+
+      {/* Konten utama */}
+      <div className="w-full flex-1 md:ml-64 bg-customBeigeMuda px-8 py-6">
+        {/* Header untuk perangkat kecil */}
+        <div className="bg-red-900 text-white flex items-center justify-between p-4 md:hidden">
+          <h1 className="text-lg font-semibold">Admin</h1>
+          <button
+            onClick={toggleSidebar}
+            className="bg-white text-red-900 px-3 py-1 rounded-md focus:outline-none"
+          >
+            {isSidebarOpen ? "Tutup" : "Menu"}
+          </button>
+        </div>
+
+        {/* Konten utama */}
+        <div className="flex-1 min-h-screen p-4 bg-customBeigeMuda">{children}</div>
       </div>
+
+      {/* Overlay untuk sidebar (hanya di perangkat kecil) */}
+      {isSidebarOpen && (
+        <div
+          onClick={toggleSidebar}
+          className="fixed inset-0 bg-black bg-opacity-50 z-10 md:hidden"
+        ></div>
+      )}
     </div>
   );
 };

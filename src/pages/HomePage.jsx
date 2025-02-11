@@ -7,10 +7,12 @@ import Contact from '../components/Contact';
 const HomePage = () => {
   return (
     <>
+    <div className='min-w-screen'>
       <HeroSection />
       <About />
       <Product />
       <Contact />
+    </div>
     </>
   );
 }
