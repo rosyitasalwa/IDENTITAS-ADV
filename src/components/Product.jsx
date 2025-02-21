@@ -50,6 +50,9 @@ const Product = () => {
               <p className="text-white text-sm md:text-base leading-relaxed">
                 {product.description}
               </p>
+              <p className="text-lg font-semibold text-center text-white mt-2">
+                {product.price ? `Harga Mulai Dari Rp ${product.price.toLocaleString()}` : "Harga Tidak Tersedia"}
+              </p>
             </div>
           ))}
         </div>

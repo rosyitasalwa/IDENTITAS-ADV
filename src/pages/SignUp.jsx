@@ -30,7 +30,7 @@ const SignUp = () => {
             setNama('')
             setEmail('')
             setPassword('')
-            navigate('/')
+            navigate('/login')
         } catch(err) {
             setError(err.message);
             console.log(err)

@@ -8,7 +8,7 @@ const AddProduct = () => {
   const productToEdit = location.state?.product || null;
 
   const [productData, setProductData] = useState(
-    productToEdit || { name: "", description: "", image: "" }
+    productToEdit || { name: "", description: "", price: "", image: "" }
   );
   const navigate = useNavigate();
 
@@ -31,7 +31,7 @@ const AddProduct = () => {
   const handleSaveChanges = async (e) => {
     e.preventDefault();
 
-    if (!productData.name || !productData.description || !productData.image) {
+    if (!productData.name || !productData.description || !productData.price || !productData.image) {
       alert("Semua field wajib diisi!");
       return;
     }
@@ -45,7 +45,7 @@ const AddProduct = () => {
         await addDoc(collection(db, "products"), productData);
         alert("Produk berhasil ditambahkan!");
       }
-      navigate("/admin/dashboard");
+      navigate("/admin/produk");
     } catch (error) {
       console.error("Error saving product: ", error);
       alert(`Gagal menyimpan produk: ${error.message}`);
@@ -79,6 +79,17 @@ const AddProduct = () => {
               className="w-full p-2 border rounded-md text-sm sm:text-base h-28 border-gray-300 bg-customBeigeMuda"
               placeholder="Masukkan deskripsi produk"
             ></textarea>
+          </div>
+          <div>
+            <label className="block text-sm text-customTaupe font-medium mb-1">Harga Produk</label>
+            <input
+              type="number"
+              name="price"
+              value={productData.price}
+              onChange={handleInputChange}
+              className="w-full p-2 border rounded-md text-sm sm:text-base border-gray-300 bg-customBeigeMuda"
+              placeholder="Masukkan harga produk"
+            />
           </div>
           <div>
             <label className="block text-sm text-customTaupe font-medium mb-1">Unggah Gambar</label>
